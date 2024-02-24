@@ -36,15 +36,6 @@ const Canvas: React.FC<CanvasProps> = (props: CanvasProps) => {
     display: 'block',
   }
 
-  // We want to maintain aspect ratio of the thing drawn on the canvas
-  // But since miniapps can be any size, we want to "fill" the excess with
-  // the same color as the background. Sry if this makes no sense.
-  // ...
-  // Also, idk if this is needed w/ background set in styles, maybe I'll revisit
-  const hundredPercentKey = width > height ? 'width' : 'height';
-  canvasStyles[hundredPercentKey] = '100%';
-
-
   // === Methods to Update Canvas ===
   // FUTURE: Expose as a customizable callback in props, this is default behavior
   const clearCanvas = () => {
