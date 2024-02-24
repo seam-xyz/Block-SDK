@@ -295,4 +295,14 @@ export const BlockTypes: { [key: string]: BlockType } = {
     deprecated: false,
     doesBlockPost: false
   },
+  "Whiteboard": { 
+        type: "Whiteboard",
+        displayName: "Whiteboard",
+        displayDescription: "Draw on a whiteboard!",
+        emptyTitle: "Empty Whiteboard Block",
+        emptySubtitle: "Tap here to setup your Whiteboard block!",
+        icon: "WhiteboardIcon", // TODO: insert your block icon here
+        deprecated: false,
+        doesBlockPost: false
+    },
 };

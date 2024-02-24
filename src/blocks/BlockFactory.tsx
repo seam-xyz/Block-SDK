@@ -1,3 +1,4 @@
+import WhiteboardBlock from './WhiteboardBlock'
 import fcUserFeedBlock from './fcUserFeedBlock'
 import tokenHoldingsBlock from './tokenHoldingsBlock'
 import NFTBlock from './NFTBlock'
@@ -51,6 +52,7 @@ export default class BlockFactory {
       case "countdown": return new CountdownBlock(model, theme)
 
       case "fcUserFeed": return new fcUserFeedBlock(model, theme)
+      case "Whiteboard": return new WhiteboardBlock(model, theme)
       // new blocks go here
       default: return new IFrameBlock(model, theme)
     }
