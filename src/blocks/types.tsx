@@ -306,4 +306,14 @@ export const BlockTypes: { [key: string]: BlockType } = {
         deprecated: false,
         doesBlockPost: false
     },
+  "puffle": { 
+        type: "puffle",
+        displayName: "puffle",
+        displayDescription: "virtual pet",
+        emptyTitle: "Empty puffle Block",
+        emptySubtitle: "Tap here to setup your puffle block!",
+        icon: "puffleIcon", // TODO: insert your block icon here
+        deprecated: false,
+        doesBlockPost: false
+    },
 };

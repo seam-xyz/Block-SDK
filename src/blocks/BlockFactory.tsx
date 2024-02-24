@@ -1,3 +1,4 @@
+import puffleBlock from './puffleBlock'
 import eyesBlock from './eyesBlock'
 import fcUserFeedBlock from './fcUserFeedBlock'
 import tokenHoldingsBlock from './tokenHoldingsBlock'
@@ -53,6 +54,7 @@ export default class BlockFactory {
 
       case "fcUserFeed": return new fcUserFeedBlock(model, theme)
       case "eyes": return new eyesBlock(model, theme)
+      case "puffle": return new puffleBlock(model, theme)
       // new blocks go here
       default: return new IFrameBlock(model, theme)
     }

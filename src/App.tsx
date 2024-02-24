@@ -21,7 +21,7 @@ export default function App() {
   // vvvvvvvvvvvvvvvvv
 
   let yourBlock: BlockModel = {
-    type: "Marquee",
+    type: "puffle",
     data: {},
     uuid: "test"
   }
