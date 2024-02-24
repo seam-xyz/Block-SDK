@@ -47,6 +47,13 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
 
   // === Methods to Update Canvas ===
   // FUTURE: Expose as a customizable callback in props, this is default behavior
+
+  const [isDrawing, setIsDrawing] = useState(false);
+  // {lastX: -1, lastY: -1, x: 1, y: 1}
+  // Negative vals for lastX, lastY mean this is the first point
+  const [lastPos, setLastPos] = useState({x: -1, y: -1});
+  const [currPos, setCurrPos] = useState({x: 0, y: 0});
+
   const clearCanvas = () => {
     const canvasContext = canvasRef?.current?.getContext('2d');
     if (!canvasContext) {
@@ -57,6 +64,42 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
     canvasContext.fillRect(0, 0, width, height);
   }
 
+  const handleDrawDrag = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+    if (!isDrawing) {
+      return;
+    }
+
+    const canvas = canvasRef?.current;
+    if (!canvas) {
+      return;
+    }
+
+    const canvasContext = canvas.getContext('2d');
+    if (!canvasContext) {
+      return;
+    }
+
+    // Translate page coordinates to relative canvas coordinates
+    const canvasBoundingRect = canvas.getBoundingClientRect();
+    const relativeX = Math.floor(e.pageX - canvasBoundingRect.left);
+    const relativeY = Math.floor(e.pageY - canvasBoundingRect.top);
+
+    // Cache pixel color and useEffect will re-draw
+    setCurrPos({x: relativeX, y: relativeY});
+  }
+
+  const handleStartDrawing = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+    if (e.button === 0 || e.button === 2) {
+      setIsDrawing(true);
+    }
+    // TODO: Draw single dot
+  }
+
+  const handleStopDrawing = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+    setLastPos({x: -1, y: -1})
+    setIsDrawing(false);
+  }
+
   // FUTURE: Expose as a customizable callback in props, takes a canvas context as an arg, can be used to access canvas
   const draw = () => {
     const canvasContext = canvasRef?.current?.getContext('2d');
@@ -64,8 +107,26 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
       return;
     }
 
+    if (!isDrawing || lastPos.x < 0 || lastPos.y < 0) {
+      setLastPos({x: currPos.x, y: currPos.y});
+      return;
+    }
+
+    console.log('im drawing fam', lastPos, currPos);
+
     canvasContext.strokeStyle = initialForegroundColor;
     canvasContext.lineWidth = 4;
+    canvasContext.moveTo(lastPos.x, lastPos.y);
+    canvasContext.lineTo(currPos.x, currPos.y);
+    canvasContext.stroke();
+
+    setLastPos({x: currPos.x, y: currPos.y});
+
+    // Update model state on every redraw... pretty inefficient but whatever
+    const imageData = canvasRef?.current?.toDataURL('image/png');
+    if (imageData) {
+      updateState(310, 480, initialBackgroundColor, imageData);
+    }
   }
 
   // === Handle Renders and Re-renders ===
@@ -81,7 +142,7 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
     // initialPixels && setPixels(initialPixels);
     // setShowGrid(shouldShowGridInViewMode || isEditMode);
     draw();
-  }, [props])
+  }, [lastPos, currPos, props])
 
   // === Finally, Return ===
   return (
@@ -90,9 +151,9 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
         width={width + 'px'}
         height={height + 'px'}
         style={canvasStyles}
-        // onMouseDown={handleCanvasClick}
-        // onMouseMove={handleCanvasDrag}
-        // onMouseUp={() => setIsMouseDownOnCanvas(false)}
+        onMouseDown={handleStartDrawing}
+        onMouseMove={handleDrawDrag}
+        onMouseUp={handleStopDrawing}
         onContextMenu={(e) => e.preventDefault()}
       />
   )
