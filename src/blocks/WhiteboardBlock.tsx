@@ -65,10 +65,6 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
   }
 
   const handleDrawDrag = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
-    if (!isDrawing) {
-      return;
-    }
-
     const canvas = canvasRef?.current;
     if (!canvas) {
       return;
@@ -85,18 +81,19 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
     const relativeY = Math.floor(e.pageY - canvasBoundingRect.top);
 
     // Cache pixel color and useEffect will re-draw
+    setLastPos({x: currPos.x, y: currPos.y});
     setCurrPos({x: relativeX, y: relativeY});
   }
 
   const handleStartDrawing = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
     if (e.button === 0 || e.button === 2) {
       setIsDrawing(true);
+      handleDrawDrag(e);
     }
     // TODO: Draw single dot
   }
 
   const handleStopDrawing = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
-    setLastPos({x: -1, y: -1})
     setIsDrawing(false);
   }
 
@@ -108,15 +105,12 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
     }
 
     if (!isDrawing || lastPos.x < 0 || lastPos.y < 0) {
-      setLastPos({x: currPos.x, y: currPos.y});
       return;
     }
 
-    console.log('im drawing fam', lastPos, currPos);
-
-    canvasContext.strokeStyle = initialForegroundColor;
-    canvasContext.lineWidth = 4;
     canvasContext.moveTo(lastPos.x, lastPos.y);
+    canvasContext.lineWidth = 4;
+    canvasContext.strokeStyle = initialForegroundColor;
     canvasContext.lineTo(currPos.x, currPos.y);
     canvasContext.stroke();
 
@@ -124,7 +118,6 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
 
     // Update model state on every redraw... pretty inefficient but whatever
     const imageData = canvasRef?.current?.toDataURL('image/png');
-    console.log('got the image data!!!', imageData);
     if (imageData) {
       updateState(310, 480, initialBackgroundColor, imageData);
     }
@@ -140,8 +133,6 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
   // Update sate variables based on changes to props
   useEffect(() => {
     // Update state variables based on changes to props
-    // initialPixels && setPixels(initialPixels);
-    // setShowGrid(shouldShowGridInViewMode || isEditMode);
     draw();
   }, [lastPos, currPos, props])
 
@@ -184,7 +175,7 @@ const WhiteboardEdit = (props: WhiteboardEditProps) => {
 
   return (
     <>
-      <Grid container>
+      {/* <Grid container>
         <Grid item xs={6} sx={{ display: 'flex', alignItems: 'center', pt: 0, }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <input
@@ -209,7 +200,7 @@ const WhiteboardEdit = (props: WhiteboardEditProps) => {
             <label>Background color</label>
           </div>
         </Grid>
-      </Grid>
+      </Grid> */}
       <div style={{position: 'relative'}}>
         <img src={whiteboardImg} style={{width: '500px'}}></img>
         <div style={{width: '480px', position: 'absolute', top: 10, left: 10}}>
@@ -289,7 +280,6 @@ export default class WhiteboardBlock extends Block {
     }
 
     const onSave = () => {
-      // console.log('saving!', this.model.data);
       done(this.model);
     }
 
