@@ -124,6 +124,7 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
 
     // Update model state on every redraw... pretty inefficient but whatever
     const imageData = canvasRef?.current?.toDataURL('image/png');
+    console.log('got the image data!!!', imageData);
     if (imageData) {
       updateState(310, 480, initialBackgroundColor, imageData);
     }
@@ -251,9 +252,18 @@ function stringSizeToNumber(size: string | undefined): number {
 
 export default class WhiteboardBlock extends Block {
   render(width?: string, height?: string) {
+    if (Object.keys(this.model.data).length === 0) {
+      return BlockFactory.renderEmptyState(this.model, this.onEditCallback!)
+    }
+
+    const {
+      backgroundColor,
+      imageData,
+    } = this.model.data;
+
     return (
       <>
-        <h1>{'wassup'}</h1>
+        <img src={imageData}></img>
       </>
     );
   }
@@ -279,6 +289,7 @@ export default class WhiteboardBlock extends Block {
     }
 
     const onSave = () => {
+      // console.log('saving!', this.model.data);
       done(this.model);
     }
 
