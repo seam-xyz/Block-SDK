@@ -63,7 +63,7 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
     canvasContext.fillRect(0, 0, width, height);
   }
 
-  const handleDrawDrag = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+  const handleDrawDrag = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef?.current;
     if (!canvas) {
       return;
@@ -76,24 +76,32 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
 
     // Translate page coordinates to relative canvas coordinates
     const canvasBoundingRect = canvas.getBoundingClientRect();
-    const relativeX = Math.floor(e.pageX - canvasBoundingRect.left);
-    const relativeY = Math.floor(e.pageY - canvasBoundingRect.top);
+    var pageObj: any = e;
+    if ('touches' in e) {
+      if(e.touches.length > 0) {
+        pageObj = e.touches[0]
+      }
+    }
+
+    const relativeX = Math.floor(pageObj.pageX - canvasBoundingRect.left);
+    const relativeY = Math.floor(pageObj.pageY - canvasBoundingRect.top);
 
     // Cache pixel color and useEffect will re-draw
-    setLastPos({x: currPos.x, y: currPos.y});
+    if (isDrawing) {
+      setLastPos({x: currPos.x, y: currPos.y});
+    }
     setCurrPos({x: relativeX, y: relativeY});
   }
 
-  const handleStartDrawing = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
-    if (e.button === 0 || e.button === 2) {
-      setIsDrawing(true);
-      handleDrawDrag(e);
-    }
+  const handleStartDrawing = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent> | React.TouchEvent<HTMLCanvasElement>) => {
+    setIsDrawing(true);
+    handleDrawDrag(e);
     // TODO: Draw single dot
   }
 
-  const handleStopDrawing = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+  const handleStopDrawing = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent> | React.TouchEvent<HTMLCanvasElement>) => {
     setIsDrawing(false);
+    setLastPos({x: -1, y: -1});
   }
 
   // FUTURE: Expose as a customizable callback in props, takes a canvas context as an arg, can be used to access canvas
@@ -103,7 +111,12 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
       return;
     }
 
-    if (!isDrawing || lastPos.x < 0 || lastPos.y < 0) {
+    if (!isDrawing) {
+      return;
+    }
+
+    // Don't draw anything if we haven't moved from one spot to another
+    if(!(lastPos.x >= 0 && lastPos.y >= 0)) {
       return;
     }
 
@@ -113,9 +126,7 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
     canvasContext.lineTo(currPos.x, currPos.y);
     canvasContext.stroke();
 
-    setLastPos({x: currPos.x, y: currPos.y});
-
-    // Update model state on every redraw... pretty inefficient but whatever
+    // Update model state on every redraw... pretty inefficient; need to be able to listen to the external button event though
     const imageData = canvasRef?.current?.toDataURL('image/png');
     if (imageData) {
       updateState(310, 480, initialBackgroundColor, imageData);
@@ -123,11 +134,12 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
   }
 
   // === Handle Renders and Re-renders ===
-  // Update sate variables based on changes to props
+  // Update sate variables based on changes to position
   useEffect(() => {
-    // Update state variables based on changes to props
+    // TODO: Why?
+    // Line 141:6:   React Hook useEffect has a missing dependency: 'draw'. Either include it or remove the dependency array
     draw();
-  }, [lastPos, currPos, props])
+  }, [lastPos, currPos])
 
   // === Finally, Return ===
   return (
@@ -139,6 +151,9 @@ const DrawableCanvas: React.FC<DrawableCanvasProps> = (props: DrawableCanvasProp
         onMouseDown={handleStartDrawing}
         onMouseMove={handleDrawDrag}
         onMouseUp={handleStopDrawing}
+        onTouchStart={handleStartDrawing}
+        onTouchMove={handleDrawDrag}
+        onTouchEnd={handleStopDrawing}
         onContextMenu={(e) => e.preventDefault()}
       />
   )
