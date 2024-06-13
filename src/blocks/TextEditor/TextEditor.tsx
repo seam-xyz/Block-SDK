@@ -1,10 +1,10 @@
 // Thanks to https://codesandbox.io/s/44ln1
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Editor, EditorState, RichUtils, convertFromRaw, convertToRaw, DraftHandleValue, Modifier } from 'draft-js';
 import 'draft-js/dist/Draft.css';
 import { Button } from '@mui/material';
 import '../BlockStyles.css'
-import { List, AlignLeft, AlignCenter, AlignRight, Code, Link } from 'react-feather'
+import { List, AlignLeft, AlignCenter, AlignRight, Code, Link, PlusCircle } from 'react-feather'
 import { ReactComponent as NumberedList } from "./images/NumberedList.svg"
 import { linkDecorator } from "./Link";
 import SeamSaveButton from '../../components/SeamSaveButton';
@@ -59,11 +59,36 @@ const TextEditor: React.FC<TextEditorProps> = ({ data, done }) => {
   const [editorState, setEditorState] = React.useState<EditorState>(initialState);
   const [activeAlignment, setActiveAlignment] = React.useState<string>('left');
   const editorRef = React.useRef<any>(null);
+  const [buttonTop, setButtonTop] = useState(0);
 
-  const focusEditor = () => {
-    if (editorRef.current) {
-      editorRef.current.focus();
+  useEffect(() => {
+    updateButtonPosition();
+  }, [editorState]);
+
+  const updateButtonPosition = () => {
+    const selection = editorState.getSelection();
+    const blockKey = selection.getStartKey();
+    const node = editorRef.current?.editor.querySelector(`[data-offset-key="${blockKey}-0-0"]`);
+
+    if (node) {
+      const nodeRect = node.getBoundingClientRect();
+      const rootRect = editorRef.current.editor.getBoundingClientRect();
+      // Calculate vertical center of the block and adjust for the height of the button
+      const buttonHeight = 16; 
+      const headerHeightAdjust = 85;
+      const verticalCenter = nodeRect.top - rootRect.top + (nodeRect.height / 2) - (buttonHeight / 2) + headerHeightAdjust;
+      setButtonTop(verticalCenter);
     }
+  };
+
+  const handleAddBlock = () => {
+    const selection = editorState.getSelection();
+    if (!selection.isCollapsed()) return;
+    const currentContent = editorState.getCurrentContent();
+    const newBlock = Modifier.splitBlock(currentContent, selection);
+    const newEditorState = EditorState.push(editorState, newBlock, 'split-block');
+    setEditorState(EditorState.forceSelection(newEditorState, newBlock.getSelectionAfter()));
+    updateButtonPosition();
   };
   
   const isActiveStyle = (style: string): boolean => editorState.getCurrentInlineStyle().has(style);
@@ -160,19 +185,27 @@ const TextEditor: React.FC<TextEditorProps> = ({ data, done }) => {
   const saveContent = () => done(JSON.stringify(convertToRaw(editorState.getCurrentContent())));
 
   return (
-    <div className="w-full flex grow flex-col">
-      <div className="min-h-[300px]" onClick={focusEditor}>
-        <Editor
-          ref={editorRef}
-          customStyleMap={styleMap}
-          editorState={editorState}
-          onChange={setEditorState}
-          handleKeyCommand={handleKeyCommand}
-          blockStyleFn={blockStyleFn}
-          autoCapitalize="sentences"
-        />
+    <div className="w-full flex flex-col items-start justify-start">
+      <div className="relative min-h-[300px] w-full z-10">
+        <div className="grow" onClick={() => editorRef.current.focus()}>
+          <Editor
+            ref={editorRef}
+            editorState={editorState}
+            onChange={setEditorState}
+            handleKeyCommand={handleKeyCommand}
+            blockStyleFn={blockStyleFn}
+            autoCapitalize="sentences"
+          />
+        </div>
       </div>
-      <div className="sticky bottom-0">
+      <button
+        style={{ top: `${buttonTop}px`, position: 'absolute', left: '24px', zIndex: 50 }} // Ensure it is visually on top
+        className="transform -translate-x-full opacity-50 hover:opacity-100"
+        onClick={handleAddBlock}
+      >
+        <PlusCircle size={16} className="text-seam-black" />
+      </button>
+      <div className="sticky bottom-0 w-full">
         <div className="flex flex-row overflow-x-scroll hide-scrollbar space-x-2 mt-2">
           <ButtonContainer>
             <EditorButton onMouseDown={toggleBlockType('unstyled')} active={getBlockType() === 'unstyled'} label="P" styleType="header" />
