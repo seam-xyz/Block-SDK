@@ -1,3 +1,4 @@
+import localelocatrApp from './localelocatrBlock'
 import CalligraphyApp from './CalligraphyApp'
 import MoodApp from './MoodApp'
 import BookshelfApp from './BookshelfApp'
@@ -66,6 +67,7 @@ export default class BlockFactory {
       case "Mood": return new MoodApp(model, theme)
       case "Whiteboard": return new WhiteboardBlock(model, theme)
       case "Calligraphy": return new CalligraphyApp(model, theme)
+      case "localelocatr": return new localelocatrApp(model, theme)
       // new blocks go here
       default: return new UnknownApp(model, theme)
     }
