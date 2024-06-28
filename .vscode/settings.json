@@ -12,5 +12,7 @@
   "editor.formatOnSave": false,
   "eslint.enable": false,
   "prettier.enable": false,
-  "files.autoSave": "off"
+  "files.autoSave": "off",
+  "prisma-smart-formatter.typescript.defaultFormatter": "esbenp.prettier-vscode",
+  "prisma-smart-formatter.typescriptreact.defaultFormatter": "vscode.typescript-language-features"
 }
