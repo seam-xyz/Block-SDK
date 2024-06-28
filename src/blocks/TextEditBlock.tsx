@@ -1,6 +1,6 @@
-import Block from './Block'
-import { BlockModel } from './types'
-import { Editor, EditorState, convertFromRaw } from 'draft-js'
+import Block from './Block';
+import { BlockModel } from './types';
+import { Editor, EditorState, convertFromRaw } from 'draft-js';
 import TextEditor from './TextEditor/TextEditor';
 import './TextEditor/TextEditorStyles.css';
 import BlockFactory from './BlockFactory';
@@ -22,12 +22,12 @@ export default class TextEditBlock extends Block {
 
   render() {
     if (Object.keys(this.model.data).length === 0) {
-      return BlockFactory.renderEmptyState(this.model, this.onEditCallback!)
+      return BlockFactory.renderEmptyState(this.model, this.onEditCallback!);
     }
 
-    let textState = this.model.data["textState"]
+    let textState = this.model.data["textState"];
     if (textState === undefined) {
-      return this.renderErrorState()
+      return this.renderErrorState();
     }
 
     const onEditorStateChange = (editorState: EditorState) => {};
@@ -38,24 +38,26 @@ export default class TextEditBlock extends Block {
         onChange={onEditorStateChange}
         blockStyleFn={this.blockStyleFn}
         readOnly={true}
-      />);
+      />
+    );
   }
 
   renderEditModal(done: (data: BlockModel) => void) {
-    let textState = this.model.data["textState"]
+    let textState = this.model.data["textState"];
     return (
-      <div className="Editor" id={this.model.uuid}>
-        <TextEditor data={textState} done={(data: string): void => {
-          this.model.data["textState"] = data
-          done(this.model)
-        }} />
+      <div className="text-center flex items-start justify-center h-full w-full" id={this.model.uuid}>
+        <TextEditor
+          data={textState}
+          done={(data: string): void => {
+            this.model.data["textState"] = data;
+            done(this.model);
+          }}
+        />
       </div>
     );
   }
 
   renderErrorState() {
-    return (
-      <h1>Error: Couldn't figure out the text</h1>
-    )
+    return <h1>Error: Couldn't figure out the text</h1>;
   }
 }

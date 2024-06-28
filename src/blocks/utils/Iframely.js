@@ -1,53 +1,46 @@
 import { Skeleton } from '@mui/material';
 import React, { useEffect, useState } from 'react';
+import IframelyCard from './IframelyCard';
 
-export default function Iframely(props) {
+const Iframely = ({ url, style }) => {
   const [error, setError] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [html, setHtml] = useState({
-    __html: '<div />',
-  });
+  const [html, setHtml] = useState({ __html: '<div />' });
 
   useEffect(() => {
-    if (props && props.url) {
-      fetch(
-        `https://cdn.iframe.ly/api/iframely?url=${encodeURIComponent(
-          props.url
-        )}&key=${process.env.REACT_APP_IFRAMELY_KEY}&iframe=0&omit_script=1`
-      )
-        .then((res) => res.json())
-        .then(
-          (res) => {
-            setIsLoaded(true);
-            if (res.html) {
-              setHtml({ __html: res.html });
-            } else if (res.error) {
-              setError({ code: res.error, message: res.message });
-            }
-          },
-          (error) => {
-            setIsLoaded(true);
-            setError(error);
-          }
+    const fetchEmbed = async () => {
+      try {
+        const response = await fetch(
+          `https://cdn.iframe.ly/api/iframely?url=${encodeURIComponent(url)}&key=${process.env.REACT_APP_IFRAMELY_KEY}&iframe=0&omit_script=1`
         );
-    } else {
-      setError({ code: 400, message: 'Provide url attribute for the element' });
-    }
-  }, [props.url]);
+        const data = await response.json();
+        if (data.html) {
+          setHtml({ __html: data.html });
+          setError(null);
+        } else {
+          setError(data.message || 'Failed to fetch embed.');
+        }
+      } catch (error) {
+        setError('Error fetching embed.');
+      } finally {
+        setIsLoaded(true);
+      }
+    };
 
-  useEffect((props) => {
+    fetchEmbed();
+  }, [url]);
+
+  useEffect(() => {
     window.iframely && window.iframely.load();
-  });
+  }, [html]);
 
   if (error) {
-    return (
-      <div>
-        Error: {error.code} - {error.message}
-      </div>
-    );
+    return <IframelyCard url={url} />;
   } else if (!isLoaded) {
     return <Skeleton variant="rectangular" width={"100%"} height={120} />;
   } else {
-    return <div dangerouslySetInnerHTML={html} />;
+    return <div dangerouslySetInnerHTML={html} style={style} />;
   }
-}
+};
+
+export default Iframely;

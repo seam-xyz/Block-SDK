@@ -6,6 +6,7 @@ import './BlockStyles.css'
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import Iframely from './utils/Iframely';
 
 export default class LinkBookmarkBlock extends Block {
   props: any;
@@ -20,35 +21,30 @@ export default class LinkBookmarkBlock extends Block {
     }
 
     return (
-      <div style={{ backgroundColor: "white", width: "100%", height: "100%" }}>
-        <IframelyCard
-          url={url}
-          style={{
-            display: "flex",
-            height: `100%`,
-            width: `100%`
-          }} />
-      </div>
+      <Box style={{ height: '100%', width: '100%' }}>
+        <Iframely url={url} style={{ height: '100%', width: '100%' }} />
+      </Box>
     );
   }
 
   renderEditModal(done: (data: BlockModel) => void) {
     const onFinish = (event: any) => {
       event.preventDefault();
-      const data = new FormData(event.currentTarget);
-      let url = data.get('url') as string
-      this.model.data['url'] = url
-      done(this.model)
+      const form = event.currentTarget;
+      const data = new FormData(form);
+      let url = data.get('url') as string;
+      this.model.data['url'] = url;
+      done(this.model);
     };
 
     return (
       <Box
         component="form"
         onSubmit={onFinish}
-        style={{}}
+        className="space-y-2"
+        style={{ paddingBottom: `calc(env(safe-area-inset-bottom, 24px) + 24px)` }} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, p: 3, bgcolor: 'background.paper', boxShadow: 3, zIndex: 1301 }}
       >
         <TextField
-          margin="normal"
           required
           fullWidth
           id="url"
@@ -56,21 +52,22 @@ export default class LinkBookmarkBlock extends Block {
           name="url"
           defaultValue={this.model.data['url']}
         />
-        <Button
-          type="submit"
-          variant="contained"
-          className="save-modal-button"
-          sx={{ mt: 3, mb: 2 }}
-        >
-          PREVIEW
-        </Button>
+        <div className="flex justify-between items-center w-full h-[60px]">
+          <Button
+            type="submit"
+            variant="contained"
+            className="save-modal-button w-full h-[60px]"
+          >
+            PREVIEW
+          </Button>
+        </div>
       </Box>
     )
   }
 
   renderErrorState() {
     return (
-      <h1>Error: Coudn't figure out the url</h1>
+      <h1>Error: Couldn't figure out the url</h1>
     )
   }
 }

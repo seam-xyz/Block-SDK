@@ -19,10 +19,11 @@ interface ImageWithModalProps {
 interface CustomModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialSlide: number;
   children: React.ReactNode;
 }
 
-const CustomModal: FC<CustomModalProps> = ({ isOpen, onClose, children }) => {
+const CustomModal: FC<CustomModalProps> = ({ isOpen, onClose, initialSlide, children }) => {
   if (!isOpen) return null;
 
   return createPortal(
@@ -44,10 +45,12 @@ const CustomModal: FC<CustomModalProps> = ({ isOpen, onClose, children }) => {
 
 const ImageWithModal: FC<ImageWithModalProps> = ({ urls, style }) => {
   const [open, setOpen] = useState(false);
+  const [initialSlide, setInitialSlide] = useState(0);
 
-  const handleOpen = (event: React.MouseEvent) => {
+  const handleOpen = (index: number) => (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
+    setInitialSlide(index);
     setOpen(true);
   };
 
@@ -72,13 +75,13 @@ const ImageWithModal: FC<ImageWithModalProps> = ({ urls, style }) => {
 
   return (
     <>
-      <div className="flex cursor-pointer gap-2.5" onClick={handleOpen}>
+      <div className="flex cursor-pointer gap-2.5">
         {urls.map((src, index) => (
-          <img key={index} src={downscaledURL(src)} className="object-cover" style={style} alt="Thumbnail" />
+          <img key={index} src={downscaledURL(src)} className="object-cover" style={style} alt="Thumbnail" onClick={handleOpen(index)} />
         ))}
       </div>
 
-      <CustomModal isOpen={open} onClose={handleClose}>
+      <CustomModal isOpen={open} onClose={handleClose} initialSlide={initialSlide}>
         <style>
           {`
             .hide-navigation-buttons .swiper-button-next,
@@ -93,6 +96,7 @@ const ImageWithModal: FC<ImageWithModalProps> = ({ urls, style }) => {
           navigation={true}
           modules={[Navigation, Zoom]}
           keyboard={{ enabled: true }}
+          initialSlide={initialSlide}
         >
           {urls.map((url, index) => (
             <SwiperSlide key={index}>

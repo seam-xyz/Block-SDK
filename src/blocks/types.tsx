@@ -25,6 +25,7 @@ import bookIcon from './blockIcons/bookIcon.png'
 import WordleIcon from './blockIcons/WordleIcon.png'
 import MoodIcon from './blockIcons/MoodIcon.png'
 import WhiteboardIcon from './blockIcons/whiteboardIcon.png'
+import CameraIcon from './blockIcons/CameraIcon.png'
 import CalligraphyIcon from "./blockIcons/calligraphyIcon.png"
 
 export type BlockModel = {
@@ -208,7 +209,7 @@ export const BlockTypes: { [key: string]: BlockType } = {
     doesBlockPost: true,
     doesBlockEdit: true,
     createdBy: "seam",
-    fullscreenEdit: false,
+    fullscreenEdit: true,
   },
   Map: {
     type: "Map",
@@ -221,7 +222,7 @@ export const BlockTypes: { [key: string]: BlockType } = {
     doesBlockPost: true,
     doesBlockEdit: true,
     createdBy: "seam",
-    fullscreenEdit: false,
+    fullscreenEdit: true,
   },
   "Image Button": {
     type: "Image Button",
@@ -432,19 +433,6 @@ export const BlockTypes: { [key: string]: BlockType } = {
     createdBy: "jamesburet",
     fullscreenEdit: false,
   },
-  "Unknown": {
-    type: "Unknown",
-    displayName: "Unknown",
-    displayDescription: "Unknown",
-    emptyTitle: "Empty Unknown App",
-    emptySubtitle: "Tap here to setup your Unknown app!",
-    icon: "UnknownIcon",
-    deprecated: true,
-    doesBlockPost: true,
-    doesBlockEdit: true,
-    createdBy: "seam",
-    fullscreenEdit: false,
-  },
   "Mood": { 
     type: "Mood",
     displayName: "Mood Visualizer",
@@ -471,6 +459,19 @@ export const BlockTypes: { [key: string]: BlockType } = {
     createdBy: "emilee",
     fullscreenEdit: false,
   },
+  "Camera": { 
+    type: "Camera",
+    displayName: "Camera",
+    displayDescription: "Use your device's camera to take and upload a photo!",
+    emptyTitle: "Empty Camera App",
+    emptySubtitle: "Tap here to setup your Camera app!",
+    icon: CameraIcon,
+    deprecated: false,
+    doesBlockPost: true,
+    doesBlockEdit: true,
+    createdBy: "seam",
+    fullscreenEdit: false,
+  },
   "Calligraphy": { 
     type: "Calligraphy",
     displayName: "Calligraphy",
@@ -483,5 +484,5 @@ export const BlockTypes: { [key: string]: BlockType } = {
     doesBlockEdit: true,
     createdBy: "chevron", // ssebexen & @chevron, TODO implement splits
     fullscreenEdit: false,
-},
+  },
 };

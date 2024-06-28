@@ -7,7 +7,7 @@ interface SeamSaveButtonProps {
 
 const SeamSaveButton: React.FC<SeamSaveButtonProps> = ({ onClick }) => {
   return (
-    <div className="flex justify-between items-center w-full h-[60px] mt-4">
+    <div className="flex justify-between items-center w-full h-[60px]">
       <Button
         variant="contained"
         fullWidth

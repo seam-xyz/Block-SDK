@@ -1,13 +1,14 @@
 // Thanks to https://codesandbox.io/s/44ln1
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Editor, EditorState, RichUtils, convertFromRaw, convertToRaw, DraftHandleValue, Modifier } from 'draft-js';
 import 'draft-js/dist/Draft.css';
-import { Button } from '@mui/material';
-import '../BlockStyles.css'
-import { List, AlignLeft, AlignCenter, AlignRight, Code, Link } from 'react-feather'
-import { ReactComponent as NumberedList } from "./images/NumberedList.svg"
+import { Box } from '@mui/material';
+import '../BlockStyles.css';
+import { List, AlignLeft, AlignCenter, AlignRight, Code, Link, X } from 'react-feather';
+import { ReactComponent as NumberedList } from "./images/NumberedList.svg";
 import { linkDecorator } from "./Link";
 import SeamSaveButton from '../../components/SeamSaveButton';
+import { TwitterPicker } from 'react-color';
 
 interface TextEditorProps {
   data: string | null;
@@ -54,18 +55,20 @@ const ButtonContainer: React.FC<ButtonContainerProps> = ({ children }) => {
 
 const TextEditor: React.FC<TextEditorProps> = ({ data, done }) => {
   const initialState = data
-  ? EditorState.createWithContent(convertFromRaw(JSON.parse(data)), linkDecorator)
-  : EditorState.createEmpty(linkDecorator);
-  const [editorState, setEditorState] = React.useState<EditorState>(initialState);
-  const [activeAlignment, setActiveAlignment] = React.useState<string>('left');
-  const editorRef = React.useRef<any>(null);
+    ? EditorState.createWithContent(convertFromRaw(JSON.parse(data)), linkDecorator)
+    : EditorState.createEmpty(linkDecorator);
+  const [editorState, setEditorState] = useState<EditorState>(initialState);
+  const [activeAlignment, setActiveAlignment] = useState<string>('left');
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [selectedColor, setSelectedColor] = useState<string>('black');
+  const editorRef = useRef<any>(null);
 
   const focusEditor = () => {
     if (editorRef.current) {
       editorRef.current.focus();
     }
   };
-  
+
   const isActiveStyle = (style: string): boolean => editorState.getCurrentInlineStyle().has(style);
   const getBlockType = (): string => editorState.getCurrentContent().getBlockForKey(editorState.getSelection().getStartKey()).getType();
 
@@ -136,6 +139,30 @@ const TextEditor: React.FC<TextEditorProps> = ({ data, done }) => {
     setEditorState(RichUtils.toggleLink(newEditorState, selection, entityKey));
   };
 
+  const applyColor = (color: string) => {
+    const selection = editorState.getSelection();
+    const nextContentState = Modifier.applyInlineStyle(editorState.getCurrentContent(), selection, color);
+    setEditorState(EditorState.push(editorState, nextContentState, 'change-inline-style'));
+  };
+
+  const generateColorStyles = () => {
+    const colors = [
+      'ff6900', 'fcb900', '7bdcb5', '00d084', '8ed1fc', '0693e3', 'abb8c3',
+      'eb144c', 'f78da7', '9900ef', '000000', 'FFFFFF'
+    ];
+    return colors.reduce((styles, color) => {
+      styles[`COLOR_${color.toUpperCase()}`] = { color: `#${color}` };
+      return styles;
+    }, {} as any);
+  };
+
+  const styleMap = {
+    STRIKETHROUGH: {
+      textDecoration: 'line-through',
+    },
+    ...generateColorStyles(),
+  };
+
   const blockStyleFn = (block: any) => {
     let alignment = 'left';
     block.findStyleRanges((e: any) => {
@@ -147,14 +174,6 @@ const TextEditor: React.FC<TextEditorProps> = ({ data, done }) => {
       }
     });
     return `editor-alignment-${alignment}`;
-  };
-
-
-  // can add more text formatting options here in the future
-  const styleMap = {
-    STRIKETHROUGH: {
-      textDecoration: 'line-through',
-    },
   };
 
   const saveContent = () => done(JSON.stringify(convertToRaw(editorState.getCurrentContent())));
@@ -172,10 +191,22 @@ const TextEditor: React.FC<TextEditorProps> = ({ data, done }) => {
           autoCapitalize="sentences"
         />
       </div>
-      <div className="sticky bottom-0">
-        <div className="flex flex-row overflow-x-scroll hide-scrollbar space-x-2 mt-2">
+      <Box className="bg-seam-white" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 24px) + 24px)', paddingTop: 'calc(env(safe-area-inset-bottom, 24px) + 24px)' }} sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1301 }}>
+        <div className="flex flex-row overflow-x-scroll hide-scrollbar space-x-2 my-2 pr-4 ml-4">
           <ButtonContainer>
             <EditorButton onMouseDown={toggleBlockType('unstyled')} active={getBlockType() === 'unstyled'} label="P" styleType="header" />
+            {showColorPicker && (
+            <div style={{ position: 'absolute', bottom: '60px', zIndex: 1400 }}>
+              <TwitterPicker 
+                onChangeComplete={(color) => {
+                  const colorStyle = `COLOR_${color.hex.replace('#', '').toUpperCase()}`;
+                  applyColor(colorStyle);
+                  setSelectedColor(color.hex);
+                  setShowColorPicker(false);
+                }}
+              />
+            </div>
+            )}
             <EditorButton onMouseDown={toggleBlockType('header-one')} active={getBlockType() === 'header-one'} label="H1" styleType="header" />
             <EditorButton onMouseDown={toggleBlockType('header-two')} active={getBlockType() === 'header-two'} label="H2" styleType="header" />
             <EditorButton onMouseDown={toggleBlockType('header-three')} active={getBlockType() === 'header-three'} label="H3" styleType="header" />
@@ -195,11 +226,16 @@ const TextEditor: React.FC<TextEditorProps> = ({ data, done }) => {
             <EditorButton onMouseDown={toggleInlineStyle('ITALIC')} active={isActiveStyle('ITALIC')} label={<div className="italic">I</div>} styleType="style" />
             <EditorButton onMouseDown={toggleInlineStyle('UNDERLINE')} active={isActiveStyle('UNDERLINE')} label={<div className="underline">U</div>} styleType="style" />
             <EditorButton onMouseDown={toggleInlineStyle('STRIKETHROUGH')} active={isActiveStyle('STRIKETHROUGH')} label={<div className="line-through">S</div>} styleType="style" />
+            <EditorButton 
+              onMouseDown={() => setShowColorPicker(!showColorPicker)} 
+              active={showColorPicker} 
+              label={<div style={{ width: '24px', height: '24px', backgroundColor: selectedColor, borderRadius: '50%' }}></div>} 
+              styleType="style" 
+            />
           </ButtonContainer>
           <ButtonContainer>
             <EditorButton onMouseDown={toggleBlockType('unordered-list-item')} active={getBlockType() === 'unordered-list-item'} label={<List size={24} color="black" />} styleType="list" />
             <EditorButton onMouseDown={toggleBlockType('ordered-list-item')} active={getBlockType() === 'ordered-list-item'} label={<NumberedList className="h-[16px] w-[19px]" />} styleType="list" />
-            <EditorButton onMouseDown={toggleBlockType('code-block')} active={getBlockType() === 'code-block'} label={<Code size={24} color="black" />} styleType="list" />
           </ButtonContainer>
           <ButtonContainer>
             <EditorButton onMouseDown={(e) => applyAlignment('left')} active={activeAlignment === 'left'} label={<AlignLeft size={24} />} styleType="alignment" />
@@ -207,8 +243,10 @@ const TextEditor: React.FC<TextEditorProps> = ({ data, done }) => {
             <EditorButton onMouseDown={(e) => applyAlignment('right')} active={activeAlignment === 'right'} label={<AlignRight size={24} color="black" />} styleType="alignment" />
           </ButtonContainer>
         </div>
-        <SeamSaveButton onClick={saveContent} />
-      </div>
+        <div className="px-4">
+          <SeamSaveButton onClick={saveContent} />
+        </div>
+      </Box>
     </div>
   );
 };

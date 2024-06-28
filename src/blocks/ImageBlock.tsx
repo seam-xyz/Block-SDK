@@ -48,7 +48,7 @@ export default class ImageBlock extends Block {
     };
 
     return (
-      <div className="relative w-full h-full">
+      <div className="w-full h-full">
         <ImageUploadPreview 
           initialUrls={initialUrls} 
           onUpdate={handleUpdate} 
